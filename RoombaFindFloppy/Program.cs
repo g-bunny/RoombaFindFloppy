@@ -8,8 +8,8 @@ namespace RoombaFindFloppy
         static void Main(string[] args)
         {
             Program myProgram = new Program();
-            int columns = 5; //3;
-            int rows = 5;   //3;
+            int columns = 6; //3;
+            int rows = 6;   //3;
             int size = columns * rows;
             int[,] testGrid = new int[size, 2];
             for(int i = 0; i < testGrid.GetLength(0); i++)
@@ -56,7 +56,7 @@ namespace RoombaFindFloppy
             //populate the nodes
             for(int i = 0; i < size; i++)
             {
-                allMyNodes[i] = new Node(Node.CellType.Undefined, GenerateGridCoords(cols,rows,i), null, false, false, -1);
+                allMyNodes[i] = new Node(Node.CellType.Path, GenerateGridCoords(cols,rows,i), null, false, false,-1, -1);
                 Console.WriteLine(string.Join(",", allMyNodes[i].xyCoord));
                 for (int j = 0; j < floppyCoords.GetLength(0); j++)
                 {
@@ -73,11 +73,12 @@ namespace RoombaFindFloppy
                         allMyNodes[i].myCellType = Node.CellType.Wall;
                     }
                 }
+                //allMyNodes[i].myCellType = Node.CellType.Path;
             }
 
             for (int i = 0; i < size; i++)
             {
-                Console.WriteLine(string.Join(",", allMyNodes[i].xyCoord));
+                Console.WriteLine(string.Join(",", allMyNodes[i].myCellType));
 
                 allMyNodes[i].neighbors = AddNeighbors(allMyNodes, allMyNodes[i], i, cols, rows);
 
@@ -106,7 +107,7 @@ namespace RoombaFindFloppy
             return gridComputed;
             
         }
-        Queue LevelOrder(Node root)
+        Queue LevelOrder(Node root, Node destination)
         {
             if(root == null)
             {
@@ -117,6 +118,7 @@ namespace RoombaFindFloppy
             while(Q.Count != 0)
             {
                 Node current = (Node)Q.Peek();
+                Q.Dequeue();
                 foreach(Node neigh in current.neighbors)
                 {
                     if (neigh != null && !neigh.isVisited)
@@ -159,18 +161,18 @@ namespace RoombaFindFloppy
 
                 //traversal
                 //queue method
-                Queue myQueue = LevelOrder(whichNode);
-                while (myQueue.Count != 0)
-                {
-                    Node current = myQueue.Dequeue();
+                //Queue myQueue = LevelOrder(whichNode, destination);
+                //while (myQueue.Count != 0)
+                //{
+                //    Node current = (Node)myQueue.Dequeue();
 
-                    distTracker = 1 + distToGuard(current);
-                    Console.WriteLine(distTracker);
-                    if (distTracker < potentialWinner)
-                    {
-                        potentialWinner = distTracker;
-                    }
-                }
+                //    distTracker = 1 + distToGuard(current);
+                //    Console.WriteLine(distTracker);
+                //    if (distTracker < potentialWinner)
+                //    {
+                //        potentialWinner = distTracker;
+                //    }
+                //}
 
                 //foreach (Node neigh in whichNode.neighbors)
                 //{
@@ -248,8 +250,7 @@ namespace RoombaFindFloppy
     {
         public enum CellType
         {
-            Undefined = 0,
-            Path,
+            Path = 0,
             Floppy,
             Wall
         }
@@ -258,15 +259,17 @@ namespace RoombaFindFloppy
         public Node[] neighbors = new Node[4]; //Left,Right,Up,Down
         public bool calculationComplete;
         public bool isVisited;
+        public int relativeLevel; 
         public int distCount;
 
-        public Node(CellType myCellType, int[] xyCoord, Node[] neighbors, bool calculationComplete, bool isVisited, int distCount)
+        public Node(CellType myCellType, int[] xyCoord, Node[] neighbors, bool calculationComplete, bool isVisited, int relativeLevel, int distCount)
         {
             this.myCellType = myCellType;
             this.xyCoord = xyCoord;
             this.neighbors = neighbors;
             this.calculationComplete = calculationComplete;
             this.isVisited = isVisited;
+            this.relativeLevel = relativeLevel;
             this.distCount = distCount;
         }
     }
