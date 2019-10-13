@@ -16,7 +16,6 @@ namespace RoombaFindFloppy
             {
                 testGrid[i,0] = myProgram.GenerateGridCoords(columns, rows, i)[0];
                 testGrid[i, 1] = myProgram.GenerateGridCoords(columns, rows, i)[1];
-
             }
 
             int[,] testFloppyCoord = { { 4, 2 }, { 0, 5 } };
@@ -73,13 +72,11 @@ namespace RoombaFindFloppy
                         allMyNodes[i].myCellType = Node.CellType.Wall;
                     }
                 }
-                //allMyNodes[i].myCellType = Node.CellType.Path;
             }
 
             for (int i = 0; i < size; i++)
             {
                 Console.WriteLine(string.Join(",", allMyNodes[i].myCellType));
-
                 allMyNodes[i].neighbors = AddNeighbors(allMyNodes, allMyNodes[i], i, cols, rows);
 
             }
@@ -92,8 +89,18 @@ namespace RoombaFindFloppy
             //}
 
             //try calculating just one
-            allMyNodes[35].distCount = distToGuard(allMyNodes[35]);
-            Console.WriteLine(allMyNodes[35].distCount);
+            //allMyNodes[35].distCount = distToGuard(allMyNodes[35]);
+            //Console.WriteLine(allMyNodes[35].distCount);
+
+
+            //calculate the whole grid:
+            for (int i = 0; i < allMyNodes.Length; i++)
+            {
+                allMyNodes[i].distCount = distToGuard(allMyNodes[i]);
+                ResetData(allMyNodes);
+                Console.WriteLine(allMyNodes[i].distCount);
+
+            }
             //for (int i = 0; i < rows; i++)
             //{
             //    for (int j = 0; j < rows; j++)
@@ -109,7 +116,6 @@ namespace RoombaFindFloppy
         }
         int LevelOrder(Node root)
         {
-            //int levelCounter = 0;
             if(root == null)
             {
                 return -1;
@@ -124,7 +130,7 @@ namespace RoombaFindFloppy
                 current.isVisited = true;
                 if(current.myCellType == Node.CellType.Floppy)
                 {
-                    //end! and return relativeLevel
+                    //end! return relativeLevel
                     return current.relativeLevel;
                 }
                 foreach(Node neigh in current.neighbors)
@@ -138,83 +144,33 @@ namespace RoombaFindFloppy
                     }
                 }
             }
-            return -1;
-            //return Q;
+            return -1; //meaning, path does not exist
+        }
+
+        void ResetData(Node[] myNodes)
+        {
+            foreach(Node node in myNodes)
+            {
+                node.isVisited = false;
+                node.relativeLevel = -1;
+            }
         }
         int distToGuard(Node whichNode)
         {
-            int distTracker = 0;
-            int potentialWinner = 100;
+            int findDistWithBFSTraversal = 100;
             if (whichNode.myCellType == Node.CellType.Wall)
             {
                 return -1;
             }
-            //pre-base case
+            //base case
             if (whichNode.myCellType == Node.CellType.Floppy)
             {
                 return 0;
             } else
             {
-
-                //base case
-                foreach (Node neigh in whichNode.neighbors)
-                {
-                    if (neigh != null && !neigh.isVisited)
-                    {
-                        if (neigh.myCellType == Node.CellType.Floppy)
-                        {
-                            distTracker = 1;
-                            return 1;
-                        }
-                    }
-                }
-
-                potentialWinner = LevelOrder(whichNode);
-                //traversal
-                //queue method
-                //Queue myQueue = LevelOrder(whichNode, destination);
-                //while (myQueue.Count != 0)
-                //{
-                //    Node current = (Node)myQueue.Dequeue();
-
-                //    distTracker = 1 + distToGuard(current);
-                //    Console.WriteLine(distTracker);
-                //    if (distTracker < potentialWinner)
-                //    {
-                //        potentialWinner = distTracker;
-                //    }
-                //}
-
-                //foreach (Node neigh in whichNode.neighbors)
-                //{
-                //    if (neigh != null && !neigh.isVisited)
-                //    {
-                //        neigh.isVisited = true;
-                //        if (neigh.distCount == -1)
-                //        {
-                //            Console.WriteLine(1 + distToGuard(neigh));
-                //            return 1 + distToGuard(neigh);
-                //        }
-                //        //else
-                //        //{
-                //        //    return 1 + neigh.distCount;
-                //        //}
-                //        //}
-                //    }
-
-                //    int storedDist;
-                //    if (neigh != null && !neigh.isVisited)
-                //    {
-                //        neigh.isVisited = true;
-                //        storedDist = 1 + distToGuard(neigh);
-                //    }
-
-                //}
-                //return distToGuard(whichNode.neighbors[0])
-                return potentialWinner;
-                //return -1 ;
+                findDistWithBFSTraversal = LevelOrder(whichNode);
+                return findDistWithBFSTraversal;
             }
-
         }
 
         Node[] AddNeighbors(Node[] allAvailableNodes, Node selfNode, int index, int width, int height)
