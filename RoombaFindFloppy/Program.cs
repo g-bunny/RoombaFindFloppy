@@ -11,12 +11,12 @@ namespace RoombaFindFloppy
             int columns = 6; //3;
             int rows = 6;   //3;
             int size = columns * rows;
-            int[,] testGrid = new int[size, 2];
-            for(int i = 0; i < testGrid.GetLength(0); i++)
-            {
-                testGrid[i,0] = myProgram.GenerateGridCoords(columns, rows, i)[0];
-                testGrid[i, 1] = myProgram.GenerateGridCoords(columns, rows, i)[1];
-            }
+            //int[,] testGrid = new int[size, 2];
+            //for(int i = 0; i < testGrid.GetLength(0); i++)
+            //{
+            //    testGrid[i,0] = myProgram.GenerateGridCoords(columns, rows, i)[0];
+            //    testGrid[i, 1] = myProgram.GenerateGridCoords(columns, rows, i)[1];
+            //}
 
             int[,] testFloppyCoord = { { 4, 2 }, { 0, 5 } };
             int[,] testWallCoord = { { 2, 1 }, { 2, 2 }, { 1, 4 }, { 3, 5 } };
@@ -33,8 +33,43 @@ namespace RoombaFindFloppy
             //int[,] testFloppyCoord = { { 4, 2 }, { 0, 5 } };
             //int[,] testWallCoord = { { 2, 1 }, { 2, 2 }, { 1, 4 }, { 3, 5 } };
 
-            int[,] ShortDistTest = myProgram.FindShortestDistFromRoombaToFloppy(columns, rows, testFloppyCoord, testWallCoord);
-            
+            //separate out the setup of the grid from the sovling of the distances
+            Node[] allMyNodes = myProgram.SetupGridProblem(columns, rows, testFloppyCoord, testWallCoord);
+
+            for (int i = 0; i < size; i++)
+            {
+                string thisItemCellState;
+                if ( allMyNodes[i].myCellType == Node.CellType.Path)
+                {
+                    thisItemCellState = "[ ] ";
+                } else if(allMyNodes[i].myCellType == Node.CellType.Floppy)
+                {
+                    thisItemCellState = " 🐰 ";
+                } else
+                {
+                    thisItemCellState = " 🚧 ";
+                }
+                Console.Write(thisItemCellState);
+                if ((i + 1) % columns == 0)
+                {
+                    Console.WriteLine();
+                }
+            }
+
+            Console.WriteLine("...finding floppy...");
+
+            int[] distancesComputed = myProgram.FindShortestDistFromRoombaToFloppy(allMyNodes);
+
+
+            for (int i = 0; i < size; i++)
+            {
+                string thisRow = distancesComputed[i] + " ";
+                Console.Write(thisRow);
+                if((i+1) % columns == 0)
+                {
+                    Console.WriteLine();
+                }
+            }
         }
 
         int[] GenerateGridCoords(int cols, int rows, int flattenedIndex)
@@ -47,16 +82,15 @@ namespace RoombaFindFloppy
             return gridCoordinates;
         }
 
-        int[,] FindShortestDistFromRoombaToFloppy(int cols, int rows, int[,] floppyCoords, int[,] wallCoords)
+        Node[] SetupGridProblem(int cols, int rows, int[,] floppyCoords, int[,] wallCoords)
         {
             int size = rows * cols;
-            int[,] gridComputed = new int[size, 2];
             Node[] allMyNodes = new Node[size];
-            //populate the nodes
-            for(int i = 0; i < size; i++)
+
+            for (int i = 0; i < size; i++)
             {
-                allMyNodes[i] = new Node(Node.CellType.Path, GenerateGridCoords(cols,rows,i), null, false, false,-1, -1);
-                Console.WriteLine(string.Join(",", allMyNodes[i].xyCoord));
+                allMyNodes[i] = new Node(Node.CellType.Path, GenerateGridCoords(cols, rows, i), null, false, false, -1, -1);
+                //Console.WriteLine(string.Join(",", allMyNodes[i].xyCoord));
                 for (int j = 0; j < floppyCoords.GetLength(0); j++)
                 {
                     if (allMyNodes[i].xyCoord[0] == floppyCoords[j, 0] && allMyNodes[i].xyCoord[1] == floppyCoords[j, 1])
@@ -76,16 +110,22 @@ namespace RoombaFindFloppy
 
             for (int i = 0; i < size; i++)
             {
-                Console.WriteLine(string.Join(",", allMyNodes[i].myCellType));
+                //Console.WriteLine(string.Join(",", allMyNodes[i].myCellType));
                 allMyNodes[i].neighbors = AddNeighbors(allMyNodes, allMyNodes[i], i, cols, rows);
-
             }
+            return allMyNodes;
+        }
 
+        int[] FindShortestDistFromRoombaToFloppy(Node[] myNodes)
+        {
+            int size = myNodes.Length;
+            int[] gridComputed = new int[size];
+            //Node[] allMyNodes = new Node[size];
+            //populate the nodes
             //for(int i =0; i < size; i++)
             //{
             //   allMyNodes[i].distCount = distToGuard(allMyNodes[i]);
             //   Console.WriteLine("dist: " + allMyNodes[i].distCount);
-
             //}
 
             //try calculating just one
@@ -94,22 +134,13 @@ namespace RoombaFindFloppy
 
 
             //calculate the whole grid:
-            for (int i = 0; i < allMyNodes.Length; i++)
+            for (int i = 0; i < myNodes.Length; i++)
             {
-                allMyNodes[i].distCount = distToGuard(allMyNodes[i]);
-                ResetData(allMyNodes);
-                Console.WriteLine(allMyNodes[i].distCount);
-
+                myNodes[i].distCount = distToGuard(myNodes[i]);
+                ResetData(myNodes);
+                //Console.WriteLine(allMyNodes[i].distCount);
+                gridComputed[i] = myNodes[i].distCount;
             }
-            //for (int i = 0; i < rows; i++)
-            //{
-            //    for (int j = 0; j < rows; j++)
-            //    {
-            //        string thisRow = "" + allMyNodes[i].distCount;
-            //    }
-            //    Console.WriteLine()
-            //}
-
 
             return gridComputed;
             
