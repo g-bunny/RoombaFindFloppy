@@ -92,8 +92,8 @@ namespace RoombaFindFloppy
             //}
 
             //try calculating just one
-            allMyNodes[0].distCount = distToGuard(allMyNodes[0]);
-            Console.WriteLine(allMyNodes[0].distCount);
+            allMyNodes[35].distCount = distToGuard(allMyNodes[35]);
+            Console.WriteLine(allMyNodes[35].distCount);
             //for (int i = 0; i < rows; i++)
             //{
             //    for (int j = 0; j < rows; j++)
@@ -107,29 +107,39 @@ namespace RoombaFindFloppy
             return gridComputed;
             
         }
-        Queue LevelOrder(Node root, Node destination)
+        int LevelOrder(Node root)
         {
+            //int levelCounter = 0;
             if(root == null)
             {
-                return null;
+                return -1;
             }
             Queue Q = new Queue();
             Q.Enqueue(root);
+            root.relativeLevel = 0;
             while(Q.Count != 0)
             {
                 Node current = (Node)Q.Peek();
                 Q.Dequeue();
+                current.isVisited = true;
+                if(current.myCellType == Node.CellType.Floppy)
+                {
+                    //end! and return relativeLevel
+                    return current.relativeLevel;
+                }
                 foreach(Node neigh in current.neighbors)
                 {
+                    
                     if (neigh != null && !neigh.isVisited)
                     {
+                        neigh.relativeLevel = current.relativeLevel + 1;
                         Q.Enqueue(neigh);
                         neigh.isVisited = true;
                     }
                 }
-                //Q.Dequeue();
             }
-            return Q;
+            return -1;
+            //return Q;
         }
         int distToGuard(Node whichNode)
         {
@@ -159,6 +169,7 @@ namespace RoombaFindFloppy
                     }
                 }
 
+                potentialWinner = LevelOrder(whichNode);
                 //traversal
                 //queue method
                 //Queue myQueue = LevelOrder(whichNode, destination);
